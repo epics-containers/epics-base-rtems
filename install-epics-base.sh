@@ -15,3 +15,4 @@ echo "RTEMS_KERNEL = ${RTEMS_KERNEL}" >> configure/CONFIG_SITE.local
 echo "RTEMS_TOOLCHAIN = ${RTEMS_TOOLCHAIN}" >> configure/CONFIG_SITE.local
 cat configure/CONFIG_SITE.local
 make -j $(nproc)
+make clean
