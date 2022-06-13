@@ -14,15 +14,8 @@ ENV PATH="${EPICS_BASE}/bin/${EPICS_HOST_ARCH}:${PATH}"
 ENV LD_LIBRARY_PATH=${EPICS_BASE}/lib/${EPICS_HOST_ARCH}
 ARG EPICS_VERSION=R7.0.6.1
 
-# create a user and group to run the iocs under
-ENV USERNAME=k8s-epics-iocs
-ENV USER_UID=37630
-ENV USER_GID=37795
-
-RUN groupadd --gid ${USER_GID} ${USERNAME} && \
-    useradd --uid ${USER_UID} --gid ${USER_GID} -s /bin/bash -m ${USERNAME} && \
-    mkdir -p ${RTEMS_TOP} && chown -R ${USERNAME}:${USERNAME} ${RTEMS_TOP} && \
-    mkdir -p ${EPICS_TOP} && chown -R ${USERNAME}:${USERNAME} ${EPICS_TOP}
+RUN mkdir -p ${RTEMS_TOP} && \
+    mkdir -p ${EPICS_TOP}
 
 WORKDIR ${EPICS_TOP}
 
@@ -37,7 +30,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
     ca-certificates \
     build-essential \
-    busybox-static \
+    busybox \
     python \
     python-dev \
     bison \
@@ -49,11 +42,9 @@ RUN apt-get update -y && apt-get upgrade -y && \
     pax \
     && rm -rf /var/lib/apt/lists/*
 
-USER ${USERNAME}
-
-COPY --chown=${USER_UID}:${USER_GID} install-rtems.sh ${RTEMS_TOP}
-COPY --chown=${USER_UID}:${USER_GID} install-epics-base.sh ${EPICS_TOP}
-COPY --chown=${USER_UID}:${USER_GID} rtems-epics-base.patch ${EPICS_TOP}
+COPY install-rtems.sh ${RTEMS_TOP}
+COPY install-epics-base.sh ${EPICS_TOP}
+COPY rtems-epics-base.patch ${EPICS_TOP}
 
 RUN cd ${RTEMS_TOP} && bash install-rtems.sh ${RTEMS_TOP} && rm install-rtems.sh
 

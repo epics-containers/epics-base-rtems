@@ -1,4 +1,3 @@
-
 name:  Build and publish image to ghcr.io/epics-containers
 
 on:
@@ -20,6 +19,7 @@ jobs:
           # tag is branch name or tag if there is a tag
           echo ::set-output name=image_tag::${GITHUB_REF##*/}
           echo ::set-output name=do_push::true
+
       - name: Cache Docker layers
         uses: actions/cache@v2
         with:
@@ -27,6 +27,7 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
+
       - name: Log in to GitHub Docker Registry
         uses: docker/login-action@v1
         with:
@@ -48,3 +49,15 @@ jobs:
           target: developer
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
+
+      - name: Build runtime image
+        uses: docker/build-push-action@v2
+        with:
+          builder: ${{ steps.buildx.outputs.name }}
+          push: ${{ steps.tag.outputs.do_push }}
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ steps.tag.outputs.image_tag }}.run
+          target: runtime
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+
